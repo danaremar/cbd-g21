@@ -3,32 +3,19 @@ import json
 from datetime import datetime
 from calendar import monthrange
 import pymongo
-
-# DATABASE CONFIG
-DB_URL = "mongodb://localhost:27017/"
-DB_NAME = "ree-rest"
+from conf import API_BASE_URL, DB_URL, DB_NAME, TYPE_BALANCE, TYPE_DEMAND, TYPE_CO2_NO_RENEWABLE, TYPE_PRICE_MARKET
 
 my_client = pymongo.MongoClient(DB_URL)
 my_db = my_client[DB_NAME]
 
-API_BASE_URL = 'https://apidatos.ree.es/es/datos'
-
-
-TYPE_BALANCE = 'balance'
-TYPE_DEMAND = 'demand'
-TYPE_CO2_NO_RENEWABLE = 'co2_no_renewable'
-TYPE_PRICE_MARKET = 'price_market'
-
 TIME_EXP = "%Y-%m-%dT%H:%M:%S"
 
-class SelectedType():
-    balance_type_selected = False
-    demand_type_selected = False
-    co2_type_selected = False
-    price_type_selected = False
 
+# STRING TO PRINT
 def inserted_info(year, month, data_type):
     return str(month) + "/" + str(year) + " - Inserted for " + data_type
+
+
 
 # BALANCE BY MONTH
 def rest_anided_by_month(year,month,data_type):
@@ -47,6 +34,8 @@ def rest_anided_by_month(year,month,data_type):
     url = API_BASE_URL + category + '?start_date=' + str(year) + '-' + month_f + '-01T00:00&end_date=' + str(year) + '-' + month_f + '-' + str(days_of_month) + 'T23:00&time_trunc=' + time_trunc
     res = requests.get(url).json()
     return res["included"]
+
+
 
 # INSERT BALANCE BY MONTH INTO DB
 def insert_balance_by_month(year, month):
@@ -72,6 +61,7 @@ def insert_balance_by_month(year, month):
     print(inserted_info(year, month, data_type))
 
 
+
 # INSERT CO2 BY MONTH INTO DB
 def insert_co2_by_month(year, month):
     data_type = TYPE_CO2_NO_RENEWABLE
@@ -93,6 +83,8 @@ def insert_co2_by_month(year, month):
 
     print(inserted_info(year, month, data_type))
 
+
+
 # QUERY BY MONTH
 def rest_query_by_month(year,month,data_type):
     days_of_month = monthrange(year, month)[1]
@@ -110,6 +102,7 @@ def rest_query_by_month(year,month,data_type):
     url = API_BASE_URL + category + '?start_date=' + str(year) + '-' + month_f + '-01T00:00&end_date=' + str(year) + '-' + month_f + '-' + str(days_of_month) + 'T23:00&time_trunc=' + time_trunc
     res = requests.get(url).json()
     return res["included"][0]["attributes"]["values"]
+
 
 
 # INSERT BY MONTH INTO DB
@@ -145,9 +138,11 @@ def insert_into_db_by_years(start_year, end_year):
             insert_into_db_by_month(y, m, TYPE_PRICE_MARKET)
 
 
+
 # DROP COLLECTION
 def drop_db():
     my_client.drop_database(DB_NAME)
+
 
 
 # DROP DATABASE AND INSERT ALL DATA
@@ -158,6 +153,7 @@ def load_data(start_year, end_year):
     print("##############################\n\n")
     print("MONTH/YEAR - INFO\n")
     insert_into_db_by_years(start_year, end_year)
+
 
 
 # ASKS DATES TO USER
@@ -177,6 +173,8 @@ def request_dates():
     return [start_year, end_year]
 
 
+
+# CONFIRM & LOAD DATA
 def load_data_selected():
     [start_year, end_year] = request_dates()
 

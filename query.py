@@ -4,15 +4,7 @@ import pymongo
 import matplotlib.pyplot as plt
 import numpy
 import arrow
-
-# DATABASE CONFIG
-DB_URL = "mongodb://localhost:27017/"
-DB_NAME = "ree-rest"
-
-TYPE_BALANCE = 'balance'
-TYPE_DEMAND = 'demand'
-TYPE_CO2_NO_RENEWABLE = 'co2_no_renewable'
-TYPE_PRICE_MARKET = 'price_market'
+from conf import DB_URL, DB_NAME, TYPE_BALANCE, TYPE_DEMAND, TYPE_CO2_NO_RENEWABLE, TYPE_PRICE_MARKET
 
 my_client = pymongo.MongoClient(DB_URL)
 my_db = my_client[DB_NAME]
@@ -22,24 +14,26 @@ my_col3 = my_db[TYPE_DEMAND]
 my_col4 = my_db[TYPE_PRICE_MARKET]
 
 
+
 def by_principal_type(year, inicio, fin):
 
     start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
     end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
     
-    renovable = my_col.find({"principal_type":"Renovable", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    no_renovable = my_col.find({"principal_type":"No-Renovable", "datetime": {'$lt':end, '$gte':start}}).distinct("value")
+    renewable = my_col.find({"principal_type":"Renovable", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
+    no_renewable = my_col.find({"principal_type":"No-Renovable", "datetime": {'$lt':end, '$gte':start}}).distinct("value")
 
-    p_renovable = value_balance(renovable)
-    p_no_renovable = value_balance(no_renovable)
+    p_renewable = value_balance(renewable)
+    p_no_renewable = value_balance(no_renewable)
 
-    data = [p_renovable, p_no_renovable]
+    data = [p_renewable, p_no_renewable]
     names = ["Renobable","No Renobable"]
     colors = ["#F34213","#2E2E3A"]
+    
     #SEPARATED PIECE
-    desfase = (0, 0.1)
+    offset = (0, 0.1)
 
-    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=desfase)
+    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
     plt.axis("equal")
     plt.show()
 
@@ -81,9 +75,9 @@ def by_child_type_no_renovable(year, inicio, fin):
     data = [p_congeneracion, p_vapor, p_bombeo, p_nuclear, p_diesel, p_ciclo, p_carbon, p_gas, p_residuos]
     names = ["Cogeneración","Turbina de vapor","Turbinación bombeo","Nuclear","Motores diésel","Ciclo combinado","Carbón","Turbina de gas","Residuos no renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634","#523A37","#995231"]
-    desfase = (0, 0.2, 0, 0, 0, 0, 0, 0.2, 0)
+    offset = (0, 0.2, 0, 0, 0, 0, 0, 0.2, 0)
 
-    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=desfase)
+    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
     plt.axis("equal")
     plt.show()
 
@@ -113,7 +107,6 @@ def by_child_type_renovable(year, inicio, fin):
     data = [p_hidraulica, p_eolica, p_hidroeolica, p_fotovoltaica, p_termica, p_otras, p_residuos]
     names = ["Hidráulica","Eólica","Hidroeólica","Solar fotovoltaica","Solar térmica","Otras renovables","Residuos renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
-
 
     plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors)
     plt.axis("equal")
@@ -145,9 +138,9 @@ def by_child_type_renovable(year, inicio, fin):
     data = [p_hidraulica, p_eolica, p_hidroeolica, p_fotovoltaica, p_termica, p_otras, p_residuos]
     names = ["Hidráulica","Eólica","Hidroeólica","Solar fotovoltaica","Solar térmica","Otras renovables","Residuos renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
-    desfase = (0, 0, 0, 0, 0, 0, 0)
+    offset = (0, 0, 0, 0, 0, 0, 0)
 
-    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=desfase)
+    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
     plt.axis("equal")
     plt.show()
 
@@ -177,17 +170,15 @@ def co2_no_renewable(year, inicio, fin):
     data = [p_carbon, p_diesel, p_gas, p_vapor, p_ciclo, p_congeneracion, p_residuos]
     names = ["Carbón","Motores diésel","Turbina de gas","Turbina de vapor","Ciclo combinado","Cogeneración","Residuos no renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
-    desfase = (0, 0.1, 0.3, 0, 0, 0, 0)
+    offset = (0, 0.1, 0.3, 0, 0, 0, 0)
 
-    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=desfase)
+    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
     plt.axis("equal")
     plt.show()
 
 
 
 def demand_price_market(year):
-
-
     demand = value_per_month("demand", year)
     price = value_per_month("price_market", year)
 
@@ -197,7 +188,6 @@ def demand_price_market(year):
     xx = range(len(demand))
     meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
-    
     ax1.bar(xx, demand, width=0.4, label="Demanda", color="#F34213", align='center')
     ax1.set_xticks(xx)
     ax1.set_xticklabels(meses)
@@ -232,10 +222,12 @@ def value_per_month(aux,year):
     
     return average
 
-    
+
+
 # RETURN STRING MONTH IN SPANISH
 def month(x, lang):
     return arrow.Arrow(2020,x,1).format('MMMM', locale=lang).capitalize()
+
 
 
 # ASKS YEAR AND MONTHS
@@ -251,16 +243,16 @@ def query_time():
     print("\nEnd month:")
     end_month = int(input())
 
-    if start_month>end_month or start_month>=12 or end_month>=12 or start_month<0 or end_month<0 or year<0 or this_year<year or (this_year==year and (this_month<=start_month or this_month<=end_month)):
+    if start_month>=end_month or start_month>=12 or end_month>=12 or start_month<0 or end_month<0 or year<0 or this_year<year or (this_year==year and (this_month<=start_month or this_month<=end_month)):
         print("\nNo valid data, please type correct times\n")
         [year, start_month, end_month] = query_time()
     
     return [year, start_month, end_month]
 
 
+
 # STARTS
 def main():
-
     [year, start_month, end_month] = query_time()
 
     i = month(start_month,'en')
