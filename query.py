@@ -23,7 +23,7 @@ def by_principal_type(year, inicio, fin):
     no_renewable = value_per_month("balance","No-Renovable",year, inicio, fin)
 
     data = [renewable[0], no_renewable[0]]
-    names = ["Renobable","No Renobable"]
+    names = ["Renovable","No Renovable"]
     colors = ["#F34213","#2E2E3A"]
     
     #SEPARATED PIECE
