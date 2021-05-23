@@ -178,6 +178,15 @@ def request_dates():
     return [start_year, end_year]
 
 
+def load_data_selected():
+    [start_year, end_year] = request_dates()
+
+    print('\nDo you want to delete DB and load new data?')
+    second_option = str(input())
+
+    if ['y', 'Y', 'YES', 'Yes', 'yes', 's', 'S', 'SI', 'Si', 'si'].__contains__(second_option):
+        load_data(start_year, end_year)
+
 # ASKS THE USER
 def select_option():
     print('Choose option:')
@@ -188,15 +197,7 @@ def select_option():
     option = int(input())
     print('')
 
-    if option==1:
-        [start_year, end_year] = request_dates()
-
-        print('\nDo you want to delete DB and load new data?')
-        second_option = str(input())
-
-        if ['y', 'Y', 'YES', 'Yes', 'yes', 's', 'S', 'SI', 'Si', 'si'].__contains__(second_option):
-            load_data(start_year, end_year)
-
+    if option==1: load_data_selected()
     elif option==2: query.main()
     elif option==3: return
 
