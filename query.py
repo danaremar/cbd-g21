@@ -217,10 +217,9 @@ def demand_price_market(year):
 
 
 def value_per_month(aux,year):
-    month = 1
     average = []
 
-    for a in range(1,13):
+    for month in range(1,13):
         start = datetime.datetime(int(year), int(month), 1, 0, 0, 0)
         end = datetime.datetime(int(year), int(month), int(monthrange(year, month)[1]), 0, 0, 0)
         y = 0
@@ -234,7 +233,6 @@ def value_per_month(aux,year):
                 y = y + int(x)
 
         average.append(y)
-        month = month + 1
     
     return average
 
