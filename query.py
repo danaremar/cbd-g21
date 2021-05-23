@@ -1,3 +1,5 @@
+import requests
+import json
 import datetime 
 from calendar import monthrange
 import pymongo
@@ -17,16 +19,10 @@ my_col4 = my_db[TYPE_PRICE_MARKET]
 
 def by_principal_type(year, inicio, fin):
 
-    start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
-    end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
-    
-    renewable = my_col.find({"principal_type":"Renovable", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    no_renewable = my_col.find({"principal_type":"No-Renovable", "datetime": {'$lt':end, '$gte':start}}).distinct("value")
+    renewable =  value_per_month("balance","Renovable",year, inicio, fin)
+    no_renewable = value_per_month("balance","No-Renovable",year, inicio, fin)
 
-    p_renewable = value_balance(renewable)
-    p_no_renewable = value_balance(no_renewable)
-
-    data = [p_renewable, p_no_renewable]
+    data = [renewable[0], no_renewable[0]]
     names = ["Renobable","No Renobable"]
     colors = ["#F34213","#2E2E3A"]
     
@@ -37,42 +33,22 @@ def by_principal_type(year, inicio, fin):
     plt.axis("equal")
     plt.show()
 
-
-
-def value_balance(collection):
-    y = 0 
-    for x in collection:
-        y = y + int(x)
-    return y
-
+    return data
 
 
 def by_child_type_no_renovable(year, inicio, fin):
 
-    start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
-    end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
+    congeneracion = value_per_month("No-Renovable", "Turbina de vapor",year, inicio, fin) 
+    vapor = value_per_month("No-Renovable", "Turbina de vapor", year, inicio, fin)
+    bombeo = value_per_month("No-Renovable", "Turbinación bombeo", year, inicio, fin)
+    nuclear = value_per_month("No-Renovable", "Nuclear", year, inicio, fin)
+    ciclo = value_per_month("No-Renovable", "Ciclo combinado", year, inicio, fin)
+    carbon = value_per_month("No-Renovable", "Carbón", year, inicio, fin)
+    diesel = value_per_month("No-Renovable", "Motores diésel", year, inicio, fin)
+    gas = value_per_month("No-Renovable", "Turbina de gas", year, inicio, fin)
+    residuos = value_per_month("No-Renovable", "Residuos no renovables", year, inicio, fin)
 
-    congeneracion = my_col.find({ "principal_type":"No-Renovable", "child_type":"Cogeneración", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    vapor = my_col.find({ "principal_type":"No-Renovable", "child_type":"Turbina de vapor", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    bombeo = my_col.find({ "principal_type":"No-Renovable", "child_type":"Turbinación bombeo", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    nuclear = my_col.find({ "principal_type":"No-Renovable", "child_type":"Nuclear", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    ciclo = my_col.find({ "principal_type":"No-Renovable", "child_type":"Ciclo combinado", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    carbon = my_col.find({ "principal_type":"No-Renovable", "child_type":"Carbón", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    diesel = my_col.find({ "principal_type":"No-Renovable", "child_type":"Motores diésel", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    gas = my_col.find({ "principal_type":"No-Renovable", "child_type":"Turbina de gas", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    residuos = my_col.find({ "principal_type":"No-Renovable", "child_type":"Residuos no renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-
-    p_congeneracion = value_balance(congeneracion)
-    p_vapor = value_balance(vapor)
-    p_bombeo = value_balance(bombeo)
-    p_nuclear = value_balance(nuclear)
-    p_diesel = value_balance(diesel)
-    p_ciclo = value_balance(ciclo)
-    p_carbon = value_balance(carbon)
-    p_gas = value_balance(gas)
-    p_residuos = value_balance(residuos)
-
-    data = [p_congeneracion, p_vapor, p_bombeo, p_nuclear, p_diesel, p_ciclo, p_carbon, p_gas, p_residuos]
+    data = [congeneracion[0], vapor[0], bombeo[0], nuclear[0], diesel[0], ciclo[0], carbon[0], gas[0], residuos[0]]
     names = ["Cogeneración","Turbina de vapor","Turbinación bombeo","Nuclear","Motores diésel","Ciclo combinado","Carbón","Turbina de gas","Residuos no renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634","#523A37","#995231"]
     offset = (0, 0.2, 0, 0, 0, 0, 0, 0.2, 0)
@@ -81,6 +57,8 @@ def by_child_type_no_renovable(year, inicio, fin):
     plt.axis("equal")
     plt.show()
 
+    return data
+
 
 
 def by_child_type_renovable(year, inicio, fin):
@@ -88,23 +66,15 @@ def by_child_type_renovable(year, inicio, fin):
     start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
     end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
 
-    hidraulica = my_col.find({ "principal_type":"Renovable", "child_type":"Hidráulica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    eolica = my_col.find({ "principal_type":"Renovable", "child_type":"Eólica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    hidroeolica = my_col.find({ "principal_type":"Renovable", "child_type":"Hidroeólica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    fotovoltaica = my_col.find({ "principal_type":"Renovable", "child_type":"Solar fotovoltaica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    termica = my_col.find({ "principal_type":"Renovable", "child_type":"Solar térmica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    otras = my_col.find({ "principal_type":"Renovable", "child_type":"Otras renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    residuos = my_col.find({ "principal_type":"Renovable", "child_type":"Residuos renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
+    hidraulica = value_per_month("Renovable","Hidráulica", year, inicio, fin)
+    eolica = value_per_month("Renovable", "Eólica", year, inicio, fin)
+    hidroeolica = value_per_month("Renovable", "Hidroeólica", year, inicio, fin)
+    fotovoltaica = value_per_month("Renovable", "Solar fotovoltaica", year, inicio, fin)
+    termica = value_per_month("Renovable", "Solar térmica", year, inicio, fin)
+    otras = value_per_month("Renovable", "Otras renovables", year, inicio, fin)
+    residuos = value_per_month("Renovable", "Residuos renovables", year, inicio, fin)
 
-    p_hidraulica = value_balance(hidraulica)
-    p_eolica = value_balance(eolica)
-    p_hidroeolica = value_balance(hidroeolica)
-    p_fotovoltaica = value_balance(fotovoltaica)
-    p_termica = value_balance(termica)
-    p_otras = value_balance(otras)
-    p_residuos = value_balance(residuos)
-
-    data = [p_hidraulica, p_eolica, p_hidroeolica, p_fotovoltaica, p_termica, p_otras, p_residuos]
+    data = [hidraulica[0], eolica[0], hidroeolica[0], fotovoltaica[0], termica[0], otras[0], residuos[0]]
     names = ["Hidráulica","Eólica","Hidroeólica","Solar fotovoltaica","Solar térmica","Otras renovables","Residuos renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
 
@@ -112,111 +82,157 @@ def by_child_type_renovable(year, inicio, fin):
     plt.axis("equal")
     plt.show()
 
-
-
-def by_child_type_renovable(year, inicio, fin):
-
-    start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
-    end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
-
-    hidraulica = my_col.find({ "principal_type":"Renovable", "child_type":"Hidráulica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    eolica = my_col.find({ "principal_type":"Renovable", "child_type":"Eólica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    hidroeolica = my_col.find({ "principal_type":"Renovable", "child_type":"Hidroeólica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    fotovoltaica = my_col.find({ "principal_type":"Renovable", "child_type":"Solar fotovoltaica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    termica = my_col.find({ "principal_type":"Renovable", "child_type":"Solar térmica", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    otras = my_col.find({ "principal_type":"Renovable", "child_type":"Otras renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    residuos = my_col.find({ "principal_type":"Renovable", "child_type":"Residuos renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-
-    p_hidraulica = value_balance(hidraulica)
-    p_eolica = value_balance(eolica)
-    p_hidroeolica = value_balance(hidroeolica)
-    p_fotovoltaica = value_balance(fotovoltaica)
-    p_termica = value_balance(termica)
-    p_otras = value_balance(otras)
-    p_residuos = value_balance(residuos)
-
-    data = [p_hidraulica, p_eolica, p_hidroeolica, p_fotovoltaica, p_termica, p_otras, p_residuos]
-    names = ["Hidráulica","Eólica","Hidroeólica","Solar fotovoltaica","Solar térmica","Otras renovables","Residuos renovables"]
-    colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
-    offset = (0, 0, 0, 0, 0, 0, 0)
-
-    plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
-    plt.axis("equal")
-    plt.show()
+    return data
 
 
 
 def co2_no_renewable(year, inicio, fin):
 
-    start = datetime.datetime(int(year), int(inicio), 1, 0, 0, 0)
-    end = datetime.datetime(int(year), int(fin), 1, 0, 0, 0)
+    carbon = value_per_month("co2_no_renewable","Carbón",year, inicio, fin)
+    diesel = value_per_month("co2_no_renewable","Motores diésel",year, inicio, fin) 
+    gas = value_per_month("co2_no_renewable","Turbina de gas",year, inicio, fin) 
+    vapor = value_per_month("co2_no_renewable","Turbina de vapor",year, inicio, fin)
+    ciclo = value_per_month("co2_no_renewable","Ciclo combinado",year, inicio, fin)
+    congeneracion = value_per_month("co2_no_renewable","Cogeneración",year, inicio, fin)
+    residuos = value_per_month("co2_no_renewable","Residuos no renovables",year, inicio, fin)
 
-    carbon = my_col2.find({"resource_type":"Carbón", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    diesel = my_col2.find({"resource_type":"Motores diésel", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    gas = my_col2.find({"resource_type":"Turbina de gas", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    vapor = my_col2.find({"resource_type":"Turbina de vapor", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    ciclo = my_col2.find({"resource_type":"Ciclo combinado", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    congeneracion = my_col2.find({"resource_type":"Cogeneración", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-    residuos = my_col2.find({"resource_type":"Residuos no renovables", "datetime": {'$lt': end, '$gte': start}}).distinct("value")
-
-    p_carbon = value_balance(carbon)
-    p_diesel = value_balance(diesel)
-    p_gas = value_balance(gas)
-    p_vapor = value_balance(vapor)
-    p_ciclo = value_balance(ciclo)
-    p_congeneracion = value_balance(congeneracion)
-    p_residuos = value_balance(residuos)
-
-    data = [p_carbon, p_diesel, p_gas, p_vapor, p_ciclo, p_congeneracion, p_residuos]
+    data = [carbon[0], diesel[0], gas[0], vapor[0], ciclo[0], congeneracion[0], residuos[0]]
     names = ["Carbón","Motores diésel","Turbina de gas","Turbina de vapor","Ciclo combinado","Cogeneración","Residuos no renovables"]
     colors = ["#F34213","#2E2E3A","#DE9151","#BC5D2E","#BBB8B2","#913827","#754634"]
-    offset = (0, 0.1, 0.3, 0, 0, 0, 0)
+    offset = (0, 0.5, 0.2, 0, 0, 0, 0)
 
     plt.pie(data, labels=names, autopct="%0.1f %%", colors=colors, explode=offset)
     plt.axis("equal")
     plt.show()
 
+    return data
+
 
 
 def demand_price_market(year):
-    demand = value_per_month("demand", year)
-    price = value_per_month("price_market", year)
 
-    plt.figure() 
+    demand = value_per_month("demand","", year,0, 0)
+    price = value_per_month("price_market","",year, 0, 0)
+
+    fig = plt.figure() 
     ax1 = plt.subplot(211)
     ax2 = plt.subplot(212)
     xx = range(len(demand))
     meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
-    ax1.bar(xx, demand, width=0.4, label="Demanda", color="#F34213", align='center')
+    ax1.bar(xx, demand, width=0.4, label="Demanda (KW/h)", color="#F34213", align='center')
     ax1.set_xticks(xx)
     ax1.set_xticklabels(meses)
     ax1.set_ylabel("Demanda")
 
-    ax2.bar(xx, price, width=0.4, label="Precio de Mercado", color="#2E2E3A", align='center')
+    ax2.bar(xx, price, width=0.4, label="Precio de Mercado (€/KW/h)", color="#2E2E3A", align='center')
     ax2.set_xticks(xx)
     ax2.set_xticklabels(meses)
     ax2.set_ylabel("Precio de Mercado")
 
     plt.show()
 
+    return [demand, price]
 
 
-def value_per_month(aux,year):
+def value_per_month(aux,aux1,year,inicio, fin):
     average = []
 
-    for month in range(1,13):
-        start = datetime.datetime(int(year), int(month), 1, 0, 0, 0)
-        end = datetime.datetime(int(year), int(month), int(monthrange(year, month)[1]), 0, 0, 0)
+    if str(aux)=="No-Renovable" or str(aux)=="Renovable":
+        for month in range(inicio, fin+1):
+
+            y = 0
+            start = datetime.datetime(int(year), int(month), 1, 0, 0, 0)
+            end = datetime.datetime(int(year), int(month), int(monthrange(year, month)[1]), 0, 00, 0) 
+
+            data = my_col.find({ "principal_type":str(aux), "child_type":str(aux1), "datetime": {'$lt': end, '$gte': start}}).distinct("value")
+
+            for x in data:
+
+                    y = y+int(x)
+
+        y=(y/int(monthrange(year, month)[1]))/(fin-inicio+1)
+        average.append(y) 
+
+    elif str(aux) == "demand" or str(aux) == "price_market":
+        
+            for month in range(1, 13):
+                
+                y = 0
+                
+                data = value_per_day(str(aux), int(year), int(month))
+
+                for x in data:
+
+                    y = y+int(x) 
+
+                y=y/int(monthrange(year, month)[1])
+                average.append(y)     
+
+    elif str(aux)=="balance":
+
+        for month in range(inicio, fin+1):
+
+            y = 0
+
+            start = datetime.datetime(int(year), int(month), 1, 0, 0, 0)
+            end = datetime.datetime(int(year), int(month), int(monthrange(year, month)[1]), 0, 00, 0) 
+
+            data = my_col.find({"principal_type":str(aux1), "datetime": {'$lt': end, '$gte': start}}).distinct("value")
+
+            for x in data:
+
+                    y = y+int(x)
+
+        y=(y/int(monthrange(year, month)[1]))/(fin-inicio+1)
+        average.append(y)
+
+    elif str(aux)=="co2_no_renewable":
+
+        for month in range(inicio, fin+1):
+
+            y = 0
+
+            start = datetime.datetime(int(year), int(month), 1, 0, 0, 0)
+            end = datetime.datetime(int(year), int(month), int(monthrange(year, month)[1]), 0, 00, 0) 
+
+            data = my_col2.find({"resource_type":str(aux1), "datetime": {'$lt': end, '$gte': start}}).distinct("value")
+
+            for x in data:
+
+                    y = y+int(x)
+
+        y=(y/int(monthrange(year, month)[1]))/(fin-inicio+1)
+        average.append(y)    
+
+    return average
+
+
+def value_per_day(aux,year,month):
+
+    average = []
+    days = int(monthrange(year, month)[1]) + 1
+
+    for d in range(1, days):
+
         y = 0
 
         if str(aux) == "demand":
+            start = datetime.datetime(int(year), int(month), d, 0, 0, 0)
+            end = datetime.datetime(int(year), int(month), d, 23, 50, 0)
+
             for x in my_col3.find({"type":str(aux), "datetime": {'$lt': end, '$gte': start}}).distinct("value"):
                 y = y + int(x)
+            y = y/142
+
         
         elif str(aux) == "price_market":
+            start = datetime.datetime(int(year), int(month), d, 0, 0, 0)
+            end = datetime.datetime(int(year), int(month), d, 23, 0, 0)
+
             for x in my_col4.find({"type":str(aux), "datetime": {'$lt': end, '$gte': start}}).distinct("value"):
                 y = y + int(x)
+            y = y/24
 
         average.append(y)
     
@@ -243,7 +259,7 @@ def query_time():
     print("\nEnd month:")
     end_month = int(input())
 
-    if start_month>=end_month or start_month>=12 or end_month>=12 or start_month<0 or end_month<0 or year<0 or this_year<year or (this_year==year and (this_month<=start_month or this_month<=end_month)):
+    if start_month>=end_month or start_month>=12 or end_month>12 or start_month<0 or end_month<0 or year<0 or this_year<year or (this_year==year and (this_month<=start_month or this_month<=end_month)):
         print("\nNo valid data, please type correct times\n")
         [year, start_month, end_month] = query_time()
     
@@ -262,8 +278,52 @@ def main():
     print("\nQuery from " + i + " to " + f + " of year " + str(year))
     print("\n############################################################\n\n")
 
-    by_principal_type(year, start_month, end_month)
-    by_child_type_renovable(year, start_month, end_month)
-    by_child_type_no_renovable(year, start_month, end_month)
-    co2_no_renewable(year, start_month, end_month)
-    demand_price_market(year)
+    a = by_principal_type(year, start_month, end_month)
+    b = by_child_type_renovable(year, start_month, end_month)
+    c = by_child_type_no_renovable(year, start_month, end_month)
+    d = co2_no_renewable(year, start_month, end_month)
+    e = demand_price_market(year)
+
+    print("Media de prodccuión Kw/h (Renovable): " + str(a[0]))
+    print("\nMedia de prodccuión Kw/h (No Renovable): " + str(a[1]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión Kw/h (Hidráulica): " + str(b[0]))
+    print("\nMedia de prodccuión Kw/h (Eólica): " + str(b[1]))
+    print("\nMedia de prodccuión Kw/h (Hidroeólica): " + str(b[2]))
+    print("\nMedia de prodccuión Kw/h (Solar fotovoltaica): " + str(b[3]))
+    print("\nMedia de prodccuión Kw/h (Solar térmica): " + str(b[4]))
+    print("\nMedia de prodccuión Kw/h (Otras renovables): " + str(b[5]))
+    print("\nMedia de prodccuión Kw/h (Residuos renovables): " + str(b[6]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión Kw/h (Cogeneración): " + str(c[0]))
+    print("\nMedia de prodccuión Kw/h (Turbina de vapor): " + str(c[1]))
+    print("\nMedia de prodccuión Kw/h (Turbinación bombeo): " + str(c[2]))
+    print("\nMedia de prodccuión Kw/h (Nuclear): " + str(c[3]))
+    print("\nMedia de prodccuión Kw/h (Motores diésel): " + str(c[4]))
+    print("\nMedia de prodccuión Kw/h (Ciclo combinado): " + str(c[5]))
+    print("\nMedia de prodccuión Kw/h (Carbón): " + str(c[6]))
+    print("\nMedia de prodccuión Kw/h (Turbina de gas): " + str(c[7]))
+    print("\nMedia de prodccuión Kw/h (Residuos no renovables): " + str(c[8]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión de toneladas de C02 (Carbón): " + str(d[0]))
+    print("\nMedia de prodccuión de toneladas de C02 (Motores diésel): " + str(d[1]))
+    print("\nMedia de prodccuión de toneladas de C02 (Turbina de gas): " + str(d[2]))
+    print("\nMedia de prodccuión de toneladas de C02 (Turbina de vapor): " + str(d[3]))
+    print("\nMedia de prodccuión de toneladas de C02 (Ciclo combinado): " + str(d[4]))
+    print("\nMedia de prodccuión de toneladas de C02 (Cogeneración): " + str(d[5]))
+    print("\nMedia de prodccuión de toneladas de C02 (Residuos no renovables): " + str(d[6]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia por mes de prodccuión de Kw/h: " + str(e[0]))
+    print("\nMedia por mes del precio del Kw/h: " + str(e[1]))
+
+
+
+    
