@@ -181,5 +181,5 @@ def load_data_selected():
     print('\nDo you want to delete DB and load new data?')
     second_option = str(input())
 
-    if ['y', 'Y', 'YES', 'Yes', 'yes', 's', 'S', 'SI', 'Si', 'si'].__contains__(second_option):
+    if ['Y', 'YES', 'S', 'SI'].__contains__(second_option.capitalize()):
         load_data(start_year, end_year)
