@@ -262,8 +262,52 @@ def main():
     print("\nQuery from " + i + " to " + f + " of year " + str(year))
     print("\n############################################################\n\n")
 
-    by_principal_type(year, start_month, end_month)
-    by_child_type_renovable(year, start_month, end_month)
-    by_child_type_no_renovable(year, start_month, end_month)
-    co2_no_renewable(year, start_month, end_month)
-    demand_price_market(year)
+    a = by_principal_type(year, start_month, end_month)
+    b = by_child_type_renovable(year, start_month, end_month)
+    c = by_child_type_no_renovable(year, start_month, end_month)
+    d = co2_no_renewable(year, start_month, end_month)
+    e = demand_price_market(year)
+
+    print("Media de prodccuión Mw/h (Renovable): " + str(a[0]))
+    print("\nMedia de prodccuión Mw/h (No Renovable): " + str(a[1]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión Mw/h (Hidráulica): " + str(b[0]))
+    print("\nMedia de prodccuión Mw/h (Eólica): " + str(b[1]))
+    print("\nMedia de prodccuión Mw/h (Hidroeólica): " + str(b[2]))
+    print("\nMedia de prodccuión Mw/h (Solar fotovoltaica): " + str(b[3]))
+    print("\nMedia de prodccuión Mw/h (Solar térmica): " + str(b[4]))
+    print("\nMedia de prodccuión Mw/h (Otras renovables): " + str(b[5]))
+    print("\nMedia de prodccuión Mw/h (Residuos renovables): " + str(b[6]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión Mw/h (Cogeneración): " + str(c[0]))
+    print("\nMedia de prodccuión Mw/h (Turbina de vapor): " + str(c[1]))
+    print("\nMedia de prodccuión Mw/h (Turbinación bombeo): " + str(c[2]))
+    print("\nMedia de prodccuión Mw/h (Nuclear): " + str(c[3]))
+    print("\nMedia de prodccuión Mw/h (Motores diésel): " + str(c[4]))
+    print("\nMedia de prodccuión Mw/h (Ciclo combinado): " + str(c[5]))
+    print("\nMedia de prodccuión Mw/h (Carbón): " + str(c[6]))
+    print("\nMedia de prodccuión Mw/h (Turbina de gas): " + str(c[7]))
+    print("\nMedia de prodccuión Mw/h (Residuos no renovables): " + str(c[8]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia de prodccuión de toneladas de C02 (Carbón): " + str(d[0]))
+    print("\nMedia de prodccuión de toneladas de C02 (Motores diésel): " + str(d[1]))
+    print("\nMedia de prodccuión de toneladas de C02 (Turbina de gas): " + str(d[2]))
+    print("\nMedia de prodccuión de toneladas de C02 (Turbina de vapor): " + str(d[3]))
+    print("\nMedia de prodccuión de toneladas de C02 (Ciclo combinado): " + str(d[4]))
+    print("\nMedia de prodccuión de toneladas de C02 (Cogeneración): " + str(d[5]))
+    print("\nMedia de prodccuión de toneladas de C02 (Residuos no renovables): " + str(d[6]))
+
+    print("\n\n############################################################")
+
+    print("\nMedia por mes de prodccuión de Mw/h: " + str(e[0]))
+    print("\nMedia por mes del precio del Mw/h: " + str(e[1]))
+
+
+
+    
