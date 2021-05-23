@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from calendar import monthrange
 import pymongo
+import query
 
 # DATABASE CONFIG
 DB_URL = "mongodb://localhost:27017/"
@@ -196,11 +197,11 @@ def select_option():
         if ['y', 'Y', 'YES', 'Yes', 'yes', 's', 'S', 'SI', 'Si', 'si'].__contains__(second_option):
             load_data(start_year, end_year)
 
+    elif option==2: query.main()
     elif option==3: return
 
     else:
-        print("\n##############################\n")
-        print('Select valid number')
+        print('\nSelect valid number\n')
         
     print("\n##############################\n")
     select_option()
