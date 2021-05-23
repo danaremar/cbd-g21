@@ -4,10 +4,6 @@ from datetime import datetime
 from calendar import monthrange
 import pymongo
 
-# PERIOD LOAD
-START_YEAR = 2020
-END_YEAR = 2020
-
 # DATABASE CONFIG
 DB_URL = "mongodb://localhost:27017/"
 DB_NAME = "ree-rest"
@@ -17,12 +13,22 @@ my_db = my_client[DB_NAME]
 
 API_BASE_URL = 'https://apidatos.ree.es/es/datos'
 
+
 TYPE_BALANCE = 'balance'
 TYPE_DEMAND = 'demand'
 TYPE_CO2_NO_RENEWABLE = 'co2_no_renewable'
 TYPE_PRICE_MARKET = 'price_market'
 
 TIME_EXP = "%Y-%m-%dT%H:%M:%S"
+
+class SelectedType():
+    balance_type_selected = False
+    demand_type_selected = False
+    co2_type_selected = False
+    price_type_selected = False
+
+def inserted_info(year, month, data_type):
+    return str(month) + "/" + str(year) + " - Inserted for " + data_type
 
 # BALANCE BY MONTH
 def rest_anided_by_month(year,month,data_type):
@@ -63,7 +69,7 @@ def insert_balance_by_month(year, month):
                     "principal_type": principal_type, "child_type": child_type }
                 my_col.insert_one(my_dict)
 
-    print(  str(month) + "/" + str(year) + " - Inserted for " + data_type )
+    print(inserted_info(year, month, data_type))
 
 
 # INSERT CO2 BY MONTH INTO DB
@@ -85,7 +91,7 @@ def insert_co2_by_month(year, month):
                 "resource_type": resource_type, "magnitude": "tCO2 eq." }
             my_col.insert_one(my_dict)
 
-    print(  str(month) + "/" + str(year) + " - Inserted for " + data_type )
+    print(inserted_info(year, month, data_type))
 
 # QUERY BY MONTH
 def rest_query_by_month(year,month,data_type):
@@ -117,7 +123,7 @@ def insert_into_db_by_month(year, month, data_type):
         my_dict = { "type": data_type, "percentage": i["percentage"], "value": i["value"], "datetime": date }
         my_col.insert_one(my_dict)
 
-    print(  str(month) + "/" + str(year) + " - Inserted for " + data_type )
+    print(inserted_info(year, month, data_type))
 
 
 
@@ -132,6 +138,7 @@ def insert_into_db_by_years(start_year, end_year):
                 # not allowes calls to future, stop and don't continue
                 print("FUTURE - Skipping process")
                 return
+
             insert_balance_by_month(y, m)
             insert_into_db_by_month(y, m, TYPE_DEMAND)
             insert_co2_by_month(y, m)
@@ -143,13 +150,69 @@ def drop_db():
     my_client.drop_database(DB_NAME)
 
 
-def load_data():
+# DROP DATABASE AND INSERT ALL DATA
+def load_data(start_year, end_year):
     drop_db()
-    print("\n##############################")
+    print("\n\n##############################")
     print("LOADING DATA")
     print("##############################\n\n")
     print("MONTH/YEAR - INFO\n")
-    insert_into_db_by_years(START_YEAR, END_YEAR)
+    insert_into_db_by_years(start_year, end_year)
 
 
-load_data()
+# ASKS DATES TO USER
+def request_dates():
+    this_year = datetime.today().year
+
+    print('Start year:')
+    start_year = int(input())
+
+    print('End year:')
+    end_year = int(input())
+
+    if this_year<end_year or end_year<0 or this_year<start_year or start_year<0:
+        print('\nPlease insert correct years:')
+        [start_year, end_year] = request_dates()
+
+    return [start_year, end_year]
+
+
+# ASKS THE USER
+def select_option():
+    print('Choose option:')
+    print('1) Drop DB & load data')
+    print('2) Represent data')
+    print('3) Exit')
+
+    option = int(input())
+    print('')
+
+    if option==1:
+        [start_year, end_year] = request_dates()
+
+        print('\nDo you want to delete DB and load new data?')
+        second_option = str(input())
+
+        if ['y', 'Y', 'YES', 'Yes', 'yes', 's', 'S', 'SI', 'Si', 'si'].__contains__(second_option):
+            load_data(start_year, end_year)
+
+    elif option==3: return
+
+    else:
+        print("\n##############################\n")
+        print('Select valid number')
+        
+    print("\n##############################\n")
+    select_option()
+
+
+# INFO & START
+def run():
+    print("\n##############################")
+    print("REData with MongoDB")
+    print("##############################\n\n")
+
+    select_option()
+
+run()
+
