@@ -1,5 +1,3 @@
-import requests
-import json
 import datetime 
 from calendar import monthrange
 import pymongo
@@ -189,13 +187,11 @@ def co2_no_renewable(year, inicio, fin):
 
 def demand_price_market(year):
 
-    start = datetime.datetime(int(year), 1, 1, 0, 0, 0)
-    end = datetime.datetime(int(year), 12, 31, 0, 0, 0)
 
     demand = value_per_month("demand", year)
     price = value_per_month("price_market", year)
 
-    fig = plt.figure() 
+    plt.figure() 
     ax1 = plt.subplot(211)
     ax2 = plt.subplot(212)
     xx = range(len(demand))
